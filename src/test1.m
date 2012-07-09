@@ -9,10 +9,10 @@ catch me
 end
 
 
-%rgbImage = imread('.\..\img\gold\retinopathy\diabetic_retinopathy\04_dr.jpg');
-%groundTruth = imread('.\..\img\gold\retinopathy\diabetic_retinopathy_manualsegm\04_dr.tif');
-rgbImage = imread('.\..\img\gold\healthy\healthy\01_h.jpg');
-groundTruth = imread('.\..\img\gold\healthy\healthy_manualsegm\01_h.tif');
+rgbImage = imread('.\..\img\gold\retinopathy\diabetic_retinopathy\04_dr.jpg');
+groundTruth = imread('.\..\img\gold\retinopathy\diabetic_retinopathy_manualsegm\04_dr.tif');
+%rgbImage = imread('.\..\img\gold\healthy\healthy\01_h.jpg');
+%groundTruth = imread('.\..\img\gold\healthy\healthy_manualsegm\01_h.tif');
 %rgbImage = imread('.\..\img\gold\glaucoma\glaucoma\01_g.jpg');
 %groundTruth = imread('.\..\img\gold\glaucoma\glaucoma_manualsegm\01_g.tif');
 
@@ -32,6 +32,7 @@ MEDIAN_SIZE        = [ 0  7] % useful values:  0  7, 0  9
 PRE_RECONSTRUCTION_OPENING_SIZE = [ 0  0] % useful values:  0  0, 3  3
 PRE_RECONSTRUCTION_CLOSING_SIZE = [ 0  0] % useful values:  0  0
 FINAL_OPENING_SIZE = 0 % useful values:  2
+CLUTTER_WINDOW_HALF_SIZE = 60;
 
 DISPLAY_INTERMEDIATE = 0
 
@@ -152,38 +153,42 @@ areaOpenedResult = bwareaopen(reconstructionResultOpened, 1000);
 figure('name', 'Area Opened Result'), imshow(areaOpenedResult);        
 
 
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% summedRows = zeros(size(areaOpenedResult));
-% summedColumns = zeros(size(areaOpenedResult));
-% for i=1:size(areaOpenedResult, 1)
-%     for j=1:size(areaOpenedResult, 2)        
-%         if j > 1
-%             summedRows(i, j) = summedRows(i, j-1) + areaOpenedResult(i, j);
-%         else
-%             summedRows(i, j) = areaOpenedResult(i, j);
-%         end
-%         if i > 1
-%             summedColumns(i, j) = summedColumns(i-1, j) + areaOpenedResult(i, j);
-%         else
-%             summedColumns(i, j) = areaOpenedResult(i, j);
-%         end
-%     end
-% end
-% 
-% areaOpenedResultFiltered = areaOpenedResult;
-% WINDOW_HALF_SIZE = 50;
-% for i=1+WINDOW_HALF_SIZE:size(areaOpenedResult, 1)-WINDOW_HALF_SIZE
-%     for j=1+WINDOW_HALF_SIZE:size(areaOpenedResult, 2)-WINDOW_HALF_SIZE
-%         topEdgeSum = summedRows(i-WINDOW_HALF_SIZE, j+WINDOW_HALF_SIZE) - summedRows(i-WINDOW_HALF_SIZE, j-WINDOW_HALF_SIZE);
-%         bottomEdgeSum = summedRows(i+WINDOW_HALF_SIZE, j+WINDOW_HALF_SIZE) - summedRows(i+WINDOW_HALF_SIZE, j-WINDOW_HALF_SIZE);
-%         leftEdgeSum = summedColumns(i+WINDOW_HALF_SIZE, j-WINDOW_HALF_SIZE) - summedColumns(i-WINDOW_HALF_SIZE, j-WINDOW_HALF_SIZE);
-%         rightEdgeSum = summedColumns(i+WINDOW_HALF_SIZE, j+WINDOW_HALF_SIZE) - summedColumns(i-WINDOW_HALF_SIZE, j+WINDOW_HALF_SIZE);
-%         if (topEdgeSum == 0) && (bottomEdgeSum == 0) && (leftEdgeSum == 0) && (rightEdgeSum == 0)
-%           areaOpenedResultFiltered(i, j) = 0;  
-%         end
-%     end
-% end
-% figure('name', 'Area Opened Result Filtered'), imshow(areaOpenedResultFiltered);        
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if CLUTTER_WINDOW_HALF_SIZE > 0
+    summedRows = zeros(size(areaOpenedResult));
+    summedColumns = zeros(size(areaOpenedResult));
+    for i=1:size(areaOpenedResult, 1)
+        for j=1:size(areaOpenedResult, 2)        
+            if j > 1
+                summedRows(i, j) = summedRows(i, j-1) + areaOpenedResult(i, j);
+            else
+                summedRows(i, j) = areaOpenedResult(i, j);
+            end
+            if i > 1
+                summedColumns(i, j) = summedColumns(i-1, j) + areaOpenedResult(i, j);
+            else
+                summedColumns(i, j) = areaOpenedResult(i, j);
+            end
+        end
+    end
+
+    areaOpenedResultFiltered = areaOpenedResult;
+    for i=1+CLUTTER_WINDOW_HALF_SIZE:size(areaOpenedResult, 1)-CLUTTER_WINDOW_HALF_SIZE
+        for j=1+CLUTTER_WINDOW_HALF_SIZE:size(areaOpenedResult, 2)-CLUTTER_WINDOW_HALF_SIZE
+            topEdgeSum = summedRows(i-CLUTTER_WINDOW_HALF_SIZE, j+CLUTTER_WINDOW_HALF_SIZE) - summedRows(i-CLUTTER_WINDOW_HALF_SIZE, j-CLUTTER_WINDOW_HALF_SIZE);
+            bottomEdgeSum = summedRows(i+CLUTTER_WINDOW_HALF_SIZE, j+CLUTTER_WINDOW_HALF_SIZE) - summedRows(i+CLUTTER_WINDOW_HALF_SIZE, j-CLUTTER_WINDOW_HALF_SIZE);
+            leftEdgeSum = summedColumns(i+CLUTTER_WINDOW_HALF_SIZE, j-CLUTTER_WINDOW_HALF_SIZE) - summedColumns(i-CLUTTER_WINDOW_HALF_SIZE, j-CLUTTER_WINDOW_HALF_SIZE);
+            rightEdgeSum = summedColumns(i+CLUTTER_WINDOW_HALF_SIZE, j+CLUTTER_WINDOW_HALF_SIZE) - summedColumns(i-CLUTTER_WINDOW_HALF_SIZE, j+CLUTTER_WINDOW_HALF_SIZE);
+            if (topEdgeSum == 0) && (bottomEdgeSum == 0) && (leftEdgeSum == 0) && (rightEdgeSum == 0)
+              %areaOpenedResultFiltered(i, j) = 0;
+              areaOpenedResultFiltered(i-CLUTTER_WINDOW_HALF_SIZE:i+CLUTTER_WINDOW_HALF_SIZE, j-CLUTTER_WINDOW_HALF_SIZE:j+CLUTTER_WINDOW_HALF_SIZE) = 0;
+            end
+        end
+    end
+else
+    areaOpenedResultFiltered = areaOpenedResult;
+end
+figure('name', 'Area Opened Result Filtered'), imshow(areaOpenedResultFiltered);        
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
