@@ -9,19 +9,23 @@ catch me
 end
 
 
-%rgbImage = imread('.\gold\healthy\healthy\01_h.jpg');
-%groundTruth = imread('.\gold\healthy\healthy_manualsegm\01_h.tif');
-rgbImage = imread('.\..\img\gold\glaucoma\glaucoma\01_g.jpg');
-groundTruth = imread('.\..\img\gold\glaucoma\glaucoma_manualsegm\01_g.tif');
+%rgbImage = imread('.\..\img\gold\retinopathy\diabetic_retinopathy\04_dr.jpg');
+%groundTruth = imread('.\..\img\gold\retinopathy\diabetic_retinopathy_manualsegm\04_dr.tif');
+rgbImage = imread('.\..\img\gold\healthy\healthy\01_h.jpg');
+groundTruth = imread('.\..\img\gold\healthy\healthy_manualsegm\01_h.tif');
+%rgbImage = imread('.\..\img\gold\glaucoma\glaucoma\01_g.jpg');
+%groundTruth = imread('.\..\img\gold\glaucoma\glaucoma_manualsegm\01_g.tif');
 
-figure('name', 'RGB'), imshow(rgbImage);
-figure('name', 'GT'), imshow(groundTruth);
+%figure('name', 'RGB'), imshow(rgbImage);
+%figure('name', 'GT'), imshow(groundTruth);
 
 % Set the parameters [benevolent (mask), strict (marker)]
-OPENING_SIZE       = [ 7 11] % useful values:  7  9, 7 11
+OPENING_SIZE       = [ 7 11] % useful values:  7 11,  3 11
 CLOSING_SIZE       = [11 35] % useful values: 11 35, 31 35
 PRE_THRESHOLD_CLOSING_SIZE = [ 0  0] % useful values:  0  0
-DIFFUSION_TIMES    = [5 0] 
+DIFFUSION_T        = [4 0] 
+DIFFUSION_SIGMA    = [1 0] 
+DIFFUSION_RHO      = [4 0]  % useful values:  4  0, 8  0
 THRESHOLD          = [16 36] % useful values: 16 32
 DILATION_SIZE_AFTER_THRESHOLDING = 0; % useful values: 0, 1, 2
 MEDIAN_SIZE        = [ 0  7] % useful values:  0  7, 0  9
@@ -29,7 +33,7 @@ PRE_RECONSTRUCTION_OPENING_SIZE = [ 0  0] % useful values:  0  0, 3  3
 PRE_RECONSTRUCTION_CLOSING_SIZE = [ 0  0] % useful values:  0  0
 FINAL_OPENING_SIZE = 0 % useful values:  2
 
-DISPLAY_INTERMEDIATE = 1
+DISPLAY_INTERMEDIATE = 0
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Prepare the mask and marker for reconstruction
@@ -76,12 +80,12 @@ for i=1:2
 
     se=strel('disk', PRE_THRESHOLD_CLOSING_SIZE(i));
     topHatsNormalizedClosed{i} = imclose(topHatsNormalized{i}, se);
-    if DISPLAY_INTERMEDIATE
+%    if DISPLAY_INTERMEDIATE
         figure('name', 'Green Black Top Hat Normalized Closed'), imshow(topHatsNormalizedClosed{i});
-    end    
+%    end    
     
-    if DIFFUSION_TIMES(i) > 0
-        topHatsDiffused{i} = CoherenceFilter(topHatsNormalizedClosed{i},struct('T',DIFFUSION_TIMES(i),'eigenmode',3));
+    if DIFFUSION_T(i) > 0
+        topHatsDiffused{i} = CoherenceFilter(topHatsNormalizedClosed{i},struct('T',DIFFUSION_T(i),'eigenmode',3, 'sigma', DIFFUSION_SIGMA(i), 'rho', DIFFUSION_RHO(i)));
     else
         topHatsDiffused{i} = topHatsNormalizedClosed{i};
     end
@@ -92,15 +96,16 @@ for i=1:2
     
     
     if i == 1
-        topHatNormalizedThresholds{i} = adaptivethreshold(topHatsDiffused{i}, 75, 0.0001, 0);
+%        topHatNormalizedThresholds{i} = adaptivethreshold(topHatsDiffused{i}, 75, 0.0001, 0);
+        topHatNormalizedThresholds{i} = adaptivethreshold(topHatsDiffused{i}, 200, 0.0005, 0);
         se=strel('disk', DILATION_SIZE_AFTER_THRESHOLDING);
         topHatNormalizedThresholds{i} = imdilate(topHatNormalizedThresholds{i}, se);
     else
         topHatNormalizedThresholds{i} = topHatsDiffused{i} > THRESHOLD(i);
     end
-    if DISPLAY_INTERMEDIATE
+%    if DISPLAY_INTERMEDIATE
         figure('name', 'Green Black Top Hat Normalized Threshold'), imshow(topHatNormalizedThresholds{i});
-    end
+%    end
     
     if MEDIAN_SIZE(i) > 0
         topHatNormalizedThresholdMedians{i} = medfilt2(topHatNormalizedThresholds{i}, [MEDIAN_SIZE(i) MEDIAN_SIZE(i)]);
@@ -141,6 +146,46 @@ end
 se=strel('disk', FINAL_OPENING_SIZE);
 reconstructionResultOpened = imopen(reconstructionResult, se);
 figure('name', 'Reconstruction Result Opened'), imshow(reconstructionResultOpened);        
+
+% Remove small components by area opening
+areaOpenedResult = bwareaopen(reconstructionResultOpened, 1000);
+figure('name', 'Area Opened Result'), imshow(areaOpenedResult);        
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% summedRows = zeros(size(areaOpenedResult));
+% summedColumns = zeros(size(areaOpenedResult));
+% for i=1:size(areaOpenedResult, 1)
+%     for j=1:size(areaOpenedResult, 2)        
+%         if j > 1
+%             summedRows(i, j) = summedRows(i, j-1) + areaOpenedResult(i, j);
+%         else
+%             summedRows(i, j) = areaOpenedResult(i, j);
+%         end
+%         if i > 1
+%             summedColumns(i, j) = summedColumns(i-1, j) + areaOpenedResult(i, j);
+%         else
+%             summedColumns(i, j) = areaOpenedResult(i, j);
+%         end
+%     end
+% end
+% 
+% areaOpenedResultFiltered = areaOpenedResult;
+% WINDOW_HALF_SIZE = 50;
+% for i=1+WINDOW_HALF_SIZE:size(areaOpenedResult, 1)-WINDOW_HALF_SIZE
+%     for j=1+WINDOW_HALF_SIZE:size(areaOpenedResult, 2)-WINDOW_HALF_SIZE
+%         topEdgeSum = summedRows(i-WINDOW_HALF_SIZE, j+WINDOW_HALF_SIZE) - summedRows(i-WINDOW_HALF_SIZE, j-WINDOW_HALF_SIZE);
+%         bottomEdgeSum = summedRows(i+WINDOW_HALF_SIZE, j+WINDOW_HALF_SIZE) - summedRows(i+WINDOW_HALF_SIZE, j-WINDOW_HALF_SIZE);
+%         leftEdgeSum = summedColumns(i+WINDOW_HALF_SIZE, j-WINDOW_HALF_SIZE) - summedColumns(i-WINDOW_HALF_SIZE, j-WINDOW_HALF_SIZE);
+%         rightEdgeSum = summedColumns(i+WINDOW_HALF_SIZE, j+WINDOW_HALF_SIZE) - summedColumns(i-WINDOW_HALF_SIZE, j+WINDOW_HALF_SIZE);
+%         if (topEdgeSum == 0) && (bottomEdgeSum == 0) && (leftEdgeSum == 0) && (rightEdgeSum == 0)
+%           areaOpenedResultFiltered(i, j) = 0;  
+%         end
+%     end
+% end
+% figure('name', 'Area Opened Result Filtered'), imshow(areaOpenedResultFiltered);        
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
