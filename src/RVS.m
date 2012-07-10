@@ -6,12 +6,12 @@ try
     functionname='test1.m';
     functiondir=which(functionname);
     functiondir=functiondir(1:end-length(functionname));
-    addpath([functiondir '/../lib'])
+    addpath([functiondir '/../lib']);
 catch me
     disp(me.message);
 end
 
-tic;
+%tic;
 
 rgbImage = imread(inputFileName);
 
@@ -28,33 +28,34 @@ rgbImage = imread(inputFileName);
 %figure('name', 'GT'), imshow(groundTruth);
 
 % Set the parameters [benevolent (mask), strict (marker)]
-OPENING_SIZE       = [ 7 11] % useful values:  7 11,  3 11
-CLOSING_SIZE       = [11 35] % useful values: 11 35, 31 35
+OPENING_SIZE       = [ 7 11]; % useful values:  7 11,  3 11
+CLOSING_SIZE       = [11 35]; % useful values: 11 35, 31 35
 
-PRE_THRESHOLD_CLOSING_SIZE = [ 0  0] % useful values:  0  0
+PRE_THRESHOLD_CLOSING_SIZE = [ 0  0]; % useful values:  0  0
 
-DIFFUSION_T        = [4 0]  % useful values:  4  0
-DIFFUSION_SIGMA    = [1 0]  % useful values:  1  0
-DIFFUSION_RHO      = [4 0]  % useful values:  4  0, 8  0
+DIFFUSION_T        = [4 0];  % useful values:  4  0
+DIFFUSION_SIGMA    = [1 0];  % useful values:  1  0
+DIFFUSION_RHO      = [4 0];  % useful values:  4  0, 8  0
 
-FIXED_THRESHOLD    = [16 36] % useful values: 16 32
-ADAPTIVE_THRESHOLD_SIZE  = 200
-ADAPTIVE_THRESHOLD_VALUE = 0.0005
+FIXED_THRESHOLD    = [16 36]; % useful values: 16 32
+ADAPTIVE_THRESHOLD_SIZE  = 200;
+ADAPTIVE_THRESHOLD_VALUE = 0.0005;
 
 DILATION_SIZE_AFTER_THRESHOLDING = 0; % useful values: 0, 1, 2
-MEDIAN_SIZE        = [ 0  7] % useful values:  0  7, 0  9
+MEDIAN_SIZE        = [ 0  7]; % useful values:  0  7, 0  9
 
-PRE_RECONSTRUCTION_OPENING_SIZE = [ 0  0] % useful values:  0  0, 3  3
-PRE_RECONSTRUCTION_CLOSING_SIZE = [ 0  0] % useful values:  0  0
+PRE_RECONSTRUCTION_OPENING_SIZE = [ 0  0]; % useful values:  0  0, 3  3
+PRE_RECONSTRUCTION_CLOSING_SIZE = [ 0  0]; % useful values:  0  0
 
-FINAL_OPENING_SIZE = 0 % useful values:  0, 2
+FINAL_OPENING_SIZE = 0; % useful values:  0, 2
 
-AREA_OPENING_PIXELS = 1000    % useful values:  1000
-CLUTTER_WINDOW_HALF_SIZE = 60 % useful values:  60
-CLUTTER_WINDOW_BORDER = 5     % useful values:  1, 5
+AREA_OPENING_PIXELS = 1000;    % useful values:  1000
+CLUTTER_WINDOW_HALF_SIZE = 60; % useful values:  60
+CLUTTER_WINDOW_BORDER = 5;     % useful values:  1, 5
 
-DISPLAY_INTERMEDIATE = 0
-DISPLAY_MASK_AND_MARKER = 0
+DISPLAY_INTERMEDIATE = 0;
+DISPLAY_MASK_AND_MARKER = 0;
+DISPLAY_RESULT = 0;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Prepare the mask and marker for reconstruction
@@ -106,7 +107,7 @@ for i=1:2
     end    
     
     if DIFFUSION_T(i) > 0
-        topHatsDiffused{i} = CoherenceFilter(topHatsNormalizedClosed{i},struct('T',DIFFUSION_T(i),'eigenmode',3, 'sigma', DIFFUSION_SIGMA(i), 'rho', DIFFUSION_RHO(i)));
+        topHatsDiffused{i} = CoherenceFilter(topHatsNormalizedClosed{i},struct('verbose','none','T',DIFFUSION_T(i),'eigenmode',3, 'sigma', DIFFUSION_SIGMA(i), 'rho', DIFFUSION_RHO(i)));
     else
         topHatsDiffused{i} = topHatsNormalizedClosed{i};
     end
@@ -228,9 +229,11 @@ if CLUTTER_WINDOW_HALF_SIZE > 0
 else
     areaOpenedResultDecluttered = areaOpenedResult;
 end
-figure('name', 'Area Opened Result Decluttered'), imshow(areaOpenedResultDecluttered);        
+if SHOW_RESULT
+    figure('name', 'Area Opened Result Decluttered'), imshow(areaOpenedResultDecluttered);        
+end
 
-toc;
+%toc;
 result = areaOpenedResultDecluttered;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

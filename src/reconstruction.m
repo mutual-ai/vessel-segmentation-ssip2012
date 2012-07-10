@@ -11,7 +11,7 @@ function result=reconstruction(mask, marker)
     reconstructionIteration = 0;
     %figure('name', 'Reconstruction Step');
     while ~(isequal(result, previousResult))
-        reconstructionIteration = reconstructionIteration + 1
+        reconstructionIteration = reconstructionIteration + 1;
         previousResult = result;
         result = imdilate(result, [0 1 0; 1 1 1; 0 1 0]);
         result = min(result, mask);
