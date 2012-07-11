@@ -11,14 +11,14 @@ warning('off', 'MATLAB:conv2:uint8Obsolete');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 folders = {
-    './../img/gold/healthy/healthy/'
- %   './../img/gold/glaucoma/glaucoma/';
+     './../img/gold/healthy/healthy/'
+%     './../img/gold/glaucoma/glaucoma/';
  %   './../img/gold/retinopathy/retinopathy/'
 };
 
 FRANGI_ON = 0; %hessian
-RVS_ON    = 1; %our implementation
-BV_ON     = 0; %bloodvessel folder
+RVS_ON    = 0; %our implementation
+BV_ON     = 1; %bloodvessel folder
 RESULTS_LOCATION = './../results/';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -91,17 +91,21 @@ for folderNum = 1:length(folders)
     
     writeResultIndex = 1;
     while writeResultIndex <= 3
+        clear res_out_dir
         if  (writeResultIndex==1) && (FRANGI_ON)
             res_out_dir = out_dir_hessian;
             cvs_data = cvs_frangi;
         end
-        if (writeResultIndex==2 ) && RVS_ON
+        if (writeResultIndex==2 ) && (RVS_ON)
             res_out_dir = out_dir_rvs;
             cvs_data = cvs_rvs;
         end
-        if (writeResultIndex==3) && BV_ON
+        if (writeResultIndex==3) && (BV_ON)
             res_out_dir = out_dir_bv;
             cvs_data = cvs_bv;
+        end
+        if ~ (exist('res_out_dir','var'))
+            continue;
         end
         
         fid = fopen(strcat(res_out_dir,strcat('batch_results','.csv')),'wt');
