@@ -3,7 +3,7 @@ function result=RVS(inputFileName)
 
 % add all needed function paths
 try
-    functionname='test1.m';
+    functionname='RVS.m';
     functiondir=which(functionname);
     functiondir=functiondir(1:end-length(functionname));
     addpath([functiondir '/../lib']);
@@ -229,7 +229,7 @@ if CLUTTER_WINDOW_HALF_SIZE > 0
 else
     areaOpenedResultDecluttered = areaOpenedResult;
 end
-if SHOW_RESULT
+if DISPLAY_RESULT
     figure('name', 'Area Opened Result Decluttered'), imshow(areaOpenedResultDecluttered);        
 end
 

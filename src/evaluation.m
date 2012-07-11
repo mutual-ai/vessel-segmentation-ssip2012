@@ -8,7 +8,9 @@
 function [sens spec accu con area leng] = evaluation(groundTruth,outcome)
 
     groundTruth  = im2bw(groundTruth , 0.5);  % groundTruth =(groundTruth == 255);
-    outcome = im2bw(outcome , 0.5);  % outcome =(outcome == 255);
+    if ~islogical(outcome)
+        outcome = im2bw(outcome , 0.5);  % outcome =(outcome == 255);
+    end
 
     TP = sum(sum((groundTruth == 1) & (outcome == 1)));
     FP=sum(sum(outcome == 1))-TP;
