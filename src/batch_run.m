@@ -89,8 +89,9 @@ for folderNum = 1:length(folders)
         end
     end
     
-    writeResultIndex = 1;
+    writeResultIndex = 0;
     while writeResultIndex <= 3
+        writeResultIndex = writeResultIndex + 1;
         clear res_out_dir
         if  (writeResultIndex==1) && (FRANGI_ON)
             res_out_dir = out_dir_hessian;
@@ -109,7 +110,7 @@ for folderNum = 1:length(folders)
         end
         
         fid = fopen(strcat(res_out_dir,strcat('batch_results','.csv')),'wt');
-        fprintf(fid, '%s;',cvs_data{1,:});
+        fprintf(fid, '%s,',cvs_data{1,:});
         fprintf(fid, '\n');
         for i=2:length(files)+1
             fprintf(fid, '%s,',cvs_data{i,1});
@@ -123,8 +124,6 @@ for folderNum = 1:length(folders)
         end
         fprintf(fid, '\n');
         fclose(fid);
-        
-        writeResultIndex = writeResultIndex + 1;
      end
 
     warning('on', 'MATLAB:conv2:uint8Obsolete');
