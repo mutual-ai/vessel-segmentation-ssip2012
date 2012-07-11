@@ -16,8 +16,8 @@ folders = {
  %   './../img/gold/retinopathy/retinopathy/'
 };
 
-FRANGI_ON = 1; %hessian
-RVS_ON    = 0; %our implementation
+FRANGI_ON = 0; %hessian
+RVS_ON    = 1; %our implementation
 BV_ON     = 0; %bloodvessel folder
 RESULTS_LOCATION = './../results/';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -108,14 +108,14 @@ for folderNum = 1:length(folders)
         fprintf(fid, '%s;',cvs_data{1,:});
         fprintf(fid, '\n');
         for i=2:length(files)+1
-            fprintf(fid, '%s;',cvs_data{i,1});
-            fprintf(fid, '%s;',cvs_data{i,2});
-            fprintf(fid, '%f;',cvs_data{i,3});
-            fprintf(fid, '%f;',cvs_data{i,4});
-            fprintf(fid, '%f;',cvs_data{i,5});
-            fprintf(fid, '%f;',cvs_data{i,6});
-            fprintf(fid, '%f;',cvs_data{i,7});
-            fprintf(fid, '%f;\n',cvs_data{i,8});
+            fprintf(fid, '%s,',cvs_data{i,1});
+            fprintf(fid, '%s,',cvs_data{i,2});
+            fprintf(fid, '%f,',cvs_data{i,3});
+            fprintf(fid, '%f,',cvs_data{i,4});
+            fprintf(fid, '%f,',cvs_data{i,5});
+            fprintf(fid, '%f,',cvs_data{i,6});
+            fprintf(fid, '%f,',cvs_data{i,7});
+            fprintf(fid, '%f,\n',cvs_data{i,8});
         end
         fprintf(fid, '\n');
         fclose(fid);
