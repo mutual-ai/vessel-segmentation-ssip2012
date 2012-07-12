@@ -5,7 +5,7 @@
 % groundTruth = imread('.\..\img\gold\healthy\healthy_manualsegm\01_h.tif');
 %% The most commonly-used metrics are sensitivity , specificity and accuracy. 
 
-function [sens spec accu con area leng] = evaluation(groundTruth,outcome)
+function [sens spec accu con area leng prec] = evaluation(groundTruth,outcome)
 
     groundTruth  = im2bw(groundTruth , 0.5);  % groundTruth =(groundTruth == 255);
     if ~islogical(outcome)
@@ -55,5 +55,7 @@ function [sens spec accu con area leng] = evaluation(groundTruth,outcome)
     outcome_skeleton = bwmorph(outcome,'skel',Inf);
 
     leng = (sum(sum(((outcome_dilate == 1) & (groundTruth_skeleton == 1)) | ((outcome_skeleton == 1) & (groundTruth_dilate == 1)))))/(sum(sum((groundTruth_skeleton == 1)|(outcome_skeleton == 1))));
+    %% precision
+    prec = TP / (TP+FP);
 
 end
