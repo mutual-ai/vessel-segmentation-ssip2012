@@ -11,14 +11,14 @@ warning('off', 'MATLAB:conv2:uint8Obsolete');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 folders = {
-%     './../img/gold/healthy/healthy/'
-     './../img/gold/glaucoma/glaucoma/'
- %   './../img/gold/retinopathy/diabetic_retinopathy/'
+     './../img/gold/healthy/healthy/'
+%     './../img/gold/glaucoma/glaucoma/'
+%     './../img/gold/retinopathy/diabetic_retinopathy/'
 };
 
-FRANGI_ON = 0; %hessian
+FRANGI_ON = 1; %hessian
 RVS_ON    = 1; %our implementation
-BV_ON     = 0; %bloodvessel folder
+BV_ON     = 1; %bloodvessel folder
 RESULTS_LOCATION = './../results/';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -34,21 +34,21 @@ for folderNum = 1:length(folders)
     out_dir_bv = strcat(out_dir,'bv/');
 
     if FRANGI_ON
-        csv_frangi = cell(numFiles+1,8);
+        csv_frangi = cell(numFiles+1,9);
         csv_frangi(1,:) = {'algorithm','filename','sens','spec','accu','con','area','leng','prec'};
         if ~exist(out_dir_hessian,'dir')
             mkdir('.',out_dir_hessian);
         end
     end
     if RVS_ON
-        csv_rvs = cell(numFiles+1,8);
+        csv_rvs = cell(numFiles+1,9);
         csv_rvs(1,:) = {'algorithm','filename','sens','spec','accu','con','area','leng','prec'};
         if ~exist(out_dir_rvs,'dir')
             mkdir('.',out_dir_rvs);
         end
     end
     if BV_ON
-        csv_bv = cell(numFiles+1,8);
+        csv_bv = cell(numFiles+1,9);
         csv_bv(1,:) = {'algorithm','filename','sens','spec','accu','con','area','leng','prec'};
         if ~exist(out_dir_bv,'dir')
             mkdir('.',out_dir_bv);
@@ -73,19 +73,19 @@ for folderNum = 1:length(folders)
             out_img_hessian = im2bw(out_img_hessian, 0.7);
             imwrite(out_img_hessian,strcat(out_dir_hessian,files(fileNum).name));
             [sens spec accu con area leng prec] = evaluation(gt_img,out_img_hessian);
-            csv_frangi(fileNum+1,:) = {'frangi',files(fileNum).name,sens,spec,accu,con,area,leng};
+            csv_frangi(fileNum+1,:) = {'frangi',files(fileNum).name,sens,spec,accu,con,area,leng,prec};
         end
         if RVS_ON
             out_img_rvs = RVS(in_img_path);
             imwrite(out_img_rvs,strcat(out_dir_rvs,files(fileNum).name));
             [sens spec accu con area leng prec] = evaluation(gt_img,out_img_rvs);
-            csv_rvs(fileNum+1,:) = {'rvs',files(fileNum).name,sens,spec,accu,con,area,leng};
+            csv_rvs(fileNum+1,:) = {'rvs',files(fileNum).name,sens,spec,accu,con,area,leng,prec};
         end
         if BV_ON
             out_img_bv = imcomplement(bv(in_img_base));
             imwrite(out_img_bv,strcat(out_dir_bv,files(fileNum).name));
             [sens spec accu con area leng prec] = evaluation(gt_img,out_img_bv);
-            csv_bv(fileNum+1,:) = {'bv',files(fileNum).name,sens,spec,accu,con,area,leng};
+            csv_bv(fileNum+1,:) = {'bv',files(fileNum).name,sens,spec,accu,con,area,leng,prec};
         end
     end
     
