@@ -35,21 +35,21 @@ for folderNum = 1:length(folders)
 
     if FRANGI_ON
         csv_frangi = cell(numFiles+1,8);
-        csv_frangi(1,:) = {'algorithm','filename','sens','spec','accu','con','area','leng'};
+        csv_frangi(1,:) = {'algorithm','filename','sens','spec','accu','con','area','leng','prec'};
         if ~exist(out_dir_hessian,'dir')
             mkdir('.',out_dir_hessian);
         end
     end
     if RVS_ON
         csv_rvs = cell(numFiles+1,8);
-        csv_rvs(1,:) = {'algorithm','filename','sens','spec','accu','con','area','leng'};
+        csv_rvs(1,:) = {'algorithm','filename','sens','spec','accu','con','area','leng','prec'};
         if ~exist(out_dir_rvs,'dir')
             mkdir('.',out_dir_rvs);
         end
     end
     if BV_ON
         csv_bv = cell(numFiles+1,8);
-        csv_bv(1,:) = {'algorithm','filename','sens','spec','accu','con','area','leng'};
+        csv_bv(1,:) = {'algorithm','filename','sens','spec','accu','con','area','leng','prec'};
         if ~exist(out_dir_bv,'dir')
             mkdir('.',out_dir_bv);
         end
@@ -72,19 +72,19 @@ for folderNum = 1:length(folders)
             out_img_hessian = (double(fov_img_dilated(:, :, 1)) .* out_img_hessian);
             out_img_hessian = im2bw(out_img_hessian, 0.7);
             imwrite(out_img_hessian,strcat(out_dir_hessian,files(fileNum).name));
-            [sens spec accu con area leng] = evaluation(gt_img,out_img_hessian);
+            [sens spec accu con area leng prec] = evaluation(gt_img,out_img_hessian);
             csv_frangi(fileNum+1,:) = {'frangi',files(fileNum).name,sens,spec,accu,con,area,leng};
         end
         if RVS_ON
             out_img_rvs = RVS(in_img_path);
             imwrite(out_img_rvs,strcat(out_dir_rvs,files(fileNum).name));
-            [sens spec accu con area leng] = evaluation(gt_img,out_img_rvs);
+            [sens spec accu con area leng prec] = evaluation(gt_img,out_img_rvs);
             csv_rvs(fileNum+1,:) = {'rvs',files(fileNum).name,sens,spec,accu,con,area,leng};
         end
         if BV_ON
             out_img_bv = imcomplement(bv(in_img_base));
             imwrite(out_img_bv,strcat(out_dir_bv,files(fileNum).name));
-            [sens spec accu con area leng] = evaluation(gt_img,out_img_bv);
+            [sens spec accu con area leng prec] = evaluation(gt_img,out_img_bv);
             csv_bv(fileNum+1,:) = {'bv',files(fileNum).name,sens,spec,accu,con,area,leng};
         end
     end
@@ -120,7 +120,8 @@ for folderNum = 1:length(folders)
             fprintf(fid, '%f,',csv_data{i,5});
             fprintf(fid, '%f,',csv_data{i,6});
             fprintf(fid, '%f,',csv_data{i,7});
-            fprintf(fid, '%f,\n',csv_data{i,8});
+            fprintf(fid, '%f,',csv_data{i,8});
+            fprintf(fid, '%f,\n',csv_data{i,9});
         end
         fprintf(fid, '\n');
         fclose(fid);

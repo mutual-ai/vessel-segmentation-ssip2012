@@ -3,9 +3,9 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 folders = {
-%     './../img/gold/healthy/healthy/'
-     './../img/gold/glaucoma/glaucoma/'
- %   './../img/gold/retinopathy/diabetic_retinopathy/'
+     './../img/gold/healthy/healthy/'
+%     './../img/gold/glaucoma/glaucoma/'
+%    './../img/gold/retinopathy/diabetic_retinopathy/'
 };
 
 FRANGI_ON = 0; %hessian
